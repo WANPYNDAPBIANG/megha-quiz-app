@@ -1,153 +1,121 @@
 /* ==================================================
-   MEGHA QUIZ APP - QUIZ ENGINE V2
+   MEGHA QUIZ APP - QUIZ ENGINE (REFRACTORED)
 ================================================== */
 
 /* ==================================================
-   GLOBAL VARIABLES
+   GLOBAL STATE
 ================================================== */
 
 let questions = [];
 let userAnswers = [];
 let bookmarks = [];
-let reviewQuestions = [];
-let timerInterval;
-let timeRemaining = 3600;
 
 let currentQuestionIndex = 0;
 
+let timerInterval;
+let timeRemaining = 3600;
+
+let leaderboard = [];
+
 /* ==================================================
-   QUIZ MODE
+   MODE SYSTEM
 ================================================== */
 
-const urlParams =
-  new URLSearchParams(
-    window.location.search
-  );
+const urlParams = new URLSearchParams(window.location.search);
+const quizMode = urlParams.get("mode") || "practice";
 
-const quizMode =
-  urlParams.get("mode") ||
-  "practice";
+const isMockMode = () => quizMode === "mock";
+const isPracticeMode = () => quizMode === "practice";
 
 /* ==================================================
-   INITIALIZE MODE
+   INIT
+================================================== */
+
+loadQuestions();
+
+/* ==================================================
+   LOAD QUESTIONS (FIXED JSON HANDLING)
+================================================== */
+
+async function loadQuestions() {
+  try {
+    const response = await fetch("data/questions.json");
+    const data = await response.json();
+
+    // FIX: supports both formats
+    questions = Array.isArray(data) ? data : data.questions;
+
+    if (!Array.isArray(questions)) {
+      throw new Error("Invalid questions format in JSON");
+    }
+
+    initializeQuizMode();
+    loadSavedData();
+
+    createQuestionPalette();
+    updatePaletteStatus();
+    updateSummary();
+    updateProgress();
+
+    displayQuestion();
+    startMockTimer();
+
+  } catch (error) {
+    console.error("Failed to load questions:", error);
+  }
+}
+
+/* ==================================================
+   MODE INITIALIZATION (UI ONLY)
+================================================== */
+
+function initializeQuizMode() {
+  if (isMockMode()) {
+    document.title = "Mock Test | Megha Quiz App";
+
+    document.querySelector(".progress-section h3").textContent =
+      "Mock Test Progress";
+
+    const bookmarkBtn = document.getElementById("bookmarkBtn");
+    if (bookmarkBtn) bookmarkBtn.style.display = "none";
+
+    const reference = document.querySelector(".reference-section");
+    if (reference) reference.style.display = "none";
+
+    document.getElementById("submitPracticeBtn").textContent =
+      "Submit Test";
+  }
+}
+
+/* ==================================================
+   TIMER (MOCK ONLY)
 ================================================== */
 
 function startMockTimer() {
-
-  if (quizMode !== "mock") {
-    return;
-  }
+  if (!isMockMode()) return;
 
   timerInterval = setInterval(() => {
+    const hours = Math.floor(timeRemaining / 3600);
+    const minutes = Math.floor((timeRemaining % 3600) / 60);
+    const seconds = timeRemaining % 60;
 
-    const hours =
-      Math.floor(timeRemaining / 3600);
+    const timer = document.getElementById("timer");
 
-    const minutes =
-      Math.floor(
-        (timeRemaining % 3600) / 60
-      );
-
-    const seconds =
-      timeRemaining % 60;
-
-    document.getElementById(
-      "timer"
-    ).textContent =
-      `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    if (timer) {
+      timer.textContent =
+        `${String(hours).padStart(2, "0")}:` +
+        `${String(minutes).padStart(2, "0")}:` +
+        `${String(seconds).padStart(2, "0")}`;
+    }
 
     timeRemaining--;
 
     if (timeRemaining < 0) {
-
-      clearInterval(
-        timerInterval
-      );
-
-      alert(
-        "Time is up! Test submitted automatically."
-      );
-
+      clearInterval(timerInterval);
+      alert("Time is up! Test submitted automatically.");
       showResults();
-
     }
-
   }, 1000);
-
-}
-
-function initializeQuizMode() {
-
-  if (quizMode === "mock") {
-
-    document.title =
-      "Mock Test | Megha Quiz App";
-
-    document.querySelector(
-      ".progress-section h3"
-    ).textContent =
-      "Mock Test Progress";
-
-    document.getElementById(
-      "bookmarkBtn"
-    ).style.display =
-      "none";
-
-    document.querySelector(
-      ".reference-section"
-    ).style.display =
-      "none";
-
-    document.getElementById(
-      "submitPracticeBtn"
-    ).textContent =
-      "Submit Test";
-
-  }
-
-}
-
-/* ==================================================
-   LOAD QUESTIONS
-================================================== */
-
-async function loadQuestions() {
-
-  try {
-
-    const response =
-      await fetch(
-        "data/questions.json"
-      );
-
-    questions =
-      await response.json();
-
-    initializeQuizMode();
-
-    loadSavedData();
-
-    createQuestionPalette();
-
-    updatePaletteStatus();
-
-    updateSummary();
-
-    updateProgress();
-
-    displayQuestion();
-
-    startMockTimer();
-
-  } catch (error) {
-
-    console.error(
-      "Failed to load questions:",
-      error
-    );
-
-  }
-
 }
 
 /* ==================================================
@@ -155,101 +123,60 @@ async function loadQuestions() {
 ================================================== */
 
 function displayQuestion() {
+  const q = questions[currentQuestionIndex];
 
-  const question =
-    questions[currentQuestionIndex];
-
-  document.getElementById(
-    "questionTitle"
-  ).textContent =
+  document.getElementById("questionTitle").textContent =
     `Question ${currentQuestionIndex + 1}`;
 
-  document.getElementById(
-    "questionText"
-  ).textContent =
-    question.question;
+  document.getElementById("questionText").textContent =
+    q.question;
 
-  document.getElementById(
-    "questionCounter"
-  ).textContent =
+  document.getElementById("questionCounter").textContent =
     `Question ${currentQuestionIndex + 1} of ${questions.length}`;
 
-  renderOptions(question);
+  renderOptions(q);
 
   updatePaletteActive();
-
   updateQuestionStatus();
-
   updateBookmarkButton();
 
-  document.getElementById(
-    "solutionContainer"
-  ).style.display =
-    "none";
+  document.getElementById("solutionContainer").style.display = "none";
 
   restoreAnswerState();
 
-  const nextButton =
-    document.getElementById(
-      "nextBtn"
-    );
+  const nextBtn = document.getElementById("nextBtn");
 
-  if (
-    currentQuestionIndex ===
-    questions.length - 1
-  ) {
-
-    nextButton.textContent =
-      quizMode === "mock"
-        ? "Submit Test"
-        : "Submit Practice";
-
-  } else {
-
-    nextButton.textContent =
-      "Next";
-
-  }
-
+  nextBtn.textContent =
+    currentQuestionIndex === questions.length - 1
+      ? (isMockMode() ? "Submit Test" : "Submit Practice")
+      : "Next";
 }
 
 /* ==================================================
-   RENDER OPTIONS
+   OPTIONS
 ================================================== */
 
 function renderOptions(question) {
-
   const container = document.getElementById("optionsContainer");
-
   container.innerHTML = "";
 
-  question.options.forEach((optionText, index) => {
+  question.options.forEach((opt, index) => {
+    const btn = document.createElement("button");
+    btn.classList.add("option-btn");
+    btn.textContent = opt;
 
-    const button = document.createElement("button");
+    btn.addEventListener("click", () => selectAnswer(index));
 
-    button.classList.add("option-btn");
-
-    button.textContent = optionText;
-
-    button.addEventListener("click", () =>
-      selectAnswer(index)
-    );
-
-    container.appendChild(button);
-
-  }
-  );
-
+    container.appendChild(btn);
+  });
 }
 
 /* ==================================================
-   SELECT ANSWER
+   ANSWER HANDLING (CORE LOGIC FIXED)
 ================================================== */
 
 function selectAnswer(selectedIndex) {
-
-  userAnswers[currentQuestionIndex] =
-    selectedIndex;
+  userAnswers[currentQuestionIndex] = selectedIndex;
 
   saveQuizData();
 
@@ -258,347 +185,169 @@ function selectAnswer(selectedIndex) {
   updateSummary();
   updateQuestionStatus();
 
-  if (quizMode === "practice") {
+  handleModeBehavior(selectedIndex);
+}
 
+function handleModeBehavior(selectedIndex) {
+  if (isPracticeMode()) {
     revealAnswer(selectedIndex);
-
     showExplanation();
-
-  } else {
-
-    renderOptions(
-      questions[currentQuestionIndex]
-    );
-
-    restoreMockSelection();
-
   }
 
+  if (isMockMode()) {
+    renderOptions(questions[currentQuestionIndex]);
+    restoreMockSelection();
+  }
 }
+
 /* ==================================================
-   REVEAL ANSWER
+   REVEAL ANSWER (PRACTICE MODE)
 ================================================== */
 
-function revealAnswer(
-  selectedIndex
-) {
+function revealAnswer(selectedIndex) {
+  const q = questions[currentQuestionIndex];
+  const correct = q.correctAnswer;
 
-  const question =
-    questions[currentQuestionIndex];
+  const buttons = document.querySelectorAll(".option-btn");
 
-  const correctIndex =
-    question.correctAnswer;
+  buttons.forEach(btn => (btn.disabled = true));
 
-  const buttons =
-    document.querySelectorAll(
-      ".option-btn"
-    );
-
-  buttons.forEach(
-    button =>
-      button.disabled = true
-  );
-
-  if (
-    selectedIndex ===
-    correctIndex
-  ) {
-
-    buttons[selectedIndex]
-      .classList.add(
-        "correct-answer"
-      );
-
+  if (selectedIndex === correct) {
+    buttons[selectedIndex].classList.add("correct-answer");
   } else {
-
-    buttons[selectedIndex]
-      .classList.add(
-        "wrong-answer"
-      );
-
-    buttons[correctIndex]
-      .classList.add(
-        "correct-answer"
-      );
-
+    buttons[selectedIndex].classList.add("wrong-answer");
+    buttons[correct].classList.add("correct-answer");
   }
-
 }
 
 /* ==================================================
-   RESTORE ANSWER
+   RESTORE STATE
 ================================================== */
 
 function restoreAnswerState() {
+  const ans = userAnswers[currentQuestionIndex];
 
-  const savedAnswer =
-    userAnswers[currentQuestionIndex];
+  if (ans === undefined) return;
 
-  if (
-    savedAnswer === undefined
-  ) {
-    return;
-  }
-
-  if (
-    quizMode === "practice"
-  ) {
-
-    revealAnswer(savedAnswer);
-
+  if (isPracticeMode()) {
+    revealAnswer(ans);
     showExplanation();
-
   }
 
-  if (
-    quizMode === "mock"
-  ) {
-
+  if (isMockMode()) {
     restoreMockSelection();
-
   }
-
 }
 
 function restoreMockSelection() {
+  if (!isMockMode()) return;
 
-  if (quizMode !== "mock") {
-    return;
+  const ans = userAnswers[currentQuestionIndex];
+  if (ans === undefined) return;
+
+  const buttons = document.querySelectorAll(".option-btn");
+
+  if (buttons[ans]) {
+    buttons[ans].classList.add("selected-option");
   }
-
-  const answer =
-    userAnswers[currentQuestionIndex];
-
-  if (answer === undefined) {
-    return;
-  }
-
-  const buttons =
-    document.querySelectorAll(
-      ".option-btn"
-    );
-
-  buttons[answer].classList.add(
-    "selected-option"
-  );
-
 }
+
 /* ==================================================
-   SHOW EXPLANATION
+   EXPLANATION
 ================================================== */
 
 function showExplanation() {
+  const q = questions[currentQuestionIndex];
 
-  const question =
-    questions[currentQuestionIndex];
-
-  const box =
-    document.getElementById(
-      "solutionContainer"
-    );
+  const box = document.getElementById("solutionContainer");
 
   box.innerHTML = `
-    <h3>
-      Solution & Explanation
-    </h3>
-
-    <p>
-      ${question.explanation}
-    </p>
+    <h3>Solution & Explanation</h3>
+    <p>${q.explanation}</p>
   `;
 
-  box.style.display =
-    "block";
-
+  box.style.display = "block";
 }
 
 /* ==================================================
-   QUESTION PALETTE
+   PALETTE
 ================================================== */
 
 function createQuestionPalette() {
-
-  const palette =
-    document.getElementById(
-      "questionPalette"
-    );
-
+  const palette = document.getElementById("questionPalette");
   palette.innerHTML = "";
 
-  questions.forEach(
-    (_, index) => {
+  questions.forEach((_, i) => {
+    const btn = document.createElement("button");
 
-      const button =
-        document.createElement(
-          "button"
-        );
+    btn.classList.add("question-number");
+    btn.textContent = i + 1;
 
-      button.classList.add(
-        "question-number"
-      );
+    btn.addEventListener("click", () => {
+      currentQuestionIndex = i;
+      displayQuestion();
+    });
 
-      button.textContent =
-        index + 1;
-
-      button.addEventListener(
-        "click",
-        () => {
-
-          currentQuestionIndex =
-            index;
-
-          displayQuestion();
-
-        }
-      );
-
-      palette.appendChild(
-        button
-      );
-
-    }
-  );
-
+    palette.appendChild(btn);
+  });
 }
 
 function updatePaletteActive() {
+  document.querySelectorAll(".question-number")
+    .forEach(b => b.classList.remove("current"));
 
-  const buttons =
-    document.querySelectorAll(
-      ".question-number"
-    );
-
-  buttons.forEach(
-    button =>
-      button.classList.remove(
-        "current"
-      )
-  );
-
-  buttons[
-    currentQuestionIndex
-  ].classList.add(
-    "current"
-  );
-
+  const btn = document.querySelectorAll(".question-number")[currentQuestionIndex];
+  if (btn) btn.classList.add("current");
 }
 
 function updatePaletteStatus() {
+  document.querySelectorAll(".question-number")
+    .forEach((btn, i) => {
+      btn.classList.remove("attempted");
 
-  const buttons =
-    document.querySelectorAll(
-      ".question-number"
-    );
-
-  buttons.forEach(
-    (button, index) => {
-
-      button.classList.remove(
-        "attempted"
-      );
-
-      if (
-        userAnswers[index] !==
-        undefined
-      ) {
-
-        button.classList.add(
-          "attempted"
-        );
-
+      if (userAnswers[i] !== undefined) {
+        btn.classList.add("attempted");
       }
-
-    }
-  );
-
+    });
 }
 
 /* ==================================================
-   STATUS
+   STATUS + SUMMARY
 ================================================== */
 
 function updateQuestionStatus() {
+  const el = document.getElementById("questionStatus");
 
-  const status =
-    document.getElementById(
-      "questionStatus"
-    );
-
-  status.textContent =
-    userAnswers[
-      currentQuestionIndex
-    ] !== undefined
+  el.textContent =
+    userAnswers[currentQuestionIndex] !== undefined
       ? "Answered"
       : "Not Attempted";
-
 }
-
-/* ==================================================
-   SUMMARY
-================================================== */
 
 function updateSummary() {
+  const answered = getAttemptedCount();
+  const unanswered = questions.length - answered;
 
-  const answered =
-    getAttemptedCount();
-
-  const unanswered =
-    questions.length -
-    answered;
-
-  document.getElementById(
-    "answeredCount"
-  ).textContent =
-    answered;
-
-  document.getElementById(
-    "unansweredCount"
-  ).textContent =
-    unanswered;
-
-  document.getElementById(
-    "bookmarkCount"
-  ).textContent =
-    bookmarks.length;
-
+  document.getElementById("answeredCount").textContent = answered;
+  document.getElementById("unansweredCount").textContent = unanswered;
+  document.getElementById("bookmarkCount").textContent = bookmarks.length;
 }
 
-/* ==================================================
-   PROGRESS
-================================================== */
-
 function getAttemptedCount() {
-
-  return userAnswers.filter(
-    answer =>
-      answer !== undefined
-  ).length;
-
+  return userAnswers.filter(a => a !== undefined).length;
 }
 
 function updateProgress() {
+  const attempted = getAttemptedCount();
 
-  const attempted =
-    getAttemptedCount();
+  const percent = questions.length
+    ? (attempted / questions.length) * 100
+    : 0;
 
-  const percentage =
-    questions.length
-      ? (
-        attempted /
-        questions.length
-      ) * 100
-      : 0;
+  document.querySelector(".progress-fill").style.width = `${percent}%`;
 
-  document.querySelector(
-    ".progress-fill"
-  ).style.width =
-    `${percentage}%`;
-
-  document.querySelector(
-    ".progress-section p"
-  ).textContent =
+  document.querySelector(".progress-section p").textContent =
     `${attempted} of ${questions.length} Questions Completed`;
-
 }
 
 /* ==================================================
@@ -606,78 +355,31 @@ function updateProgress() {
 ================================================== */
 
 function toggleBookmark() {
+  const id = questions[currentQuestionIndex].id;
 
-  const questionId =
-    questions[
-      currentQuestionIndex
-    ].id;
+  const index = bookmarks.indexOf(id);
 
-  const index =
-    bookmarks.indexOf(
-      questionId
-    );
-
-  if (index === -1) {
-
-    bookmarks.push(
-      questionId
-    );
-
-  } else {
-
-    bookmarks.splice(
-      index,
-      1
-    );
-
-  }
+  if (index === -1) bookmarks.push(id);
+  else bookmarks.splice(index, 1);
 
   saveQuizData();
-
   updateBookmarkButton();
-
   updateSummary();
-
 }
 
 function updateBookmarkButton() {
+  const btn = document.getElementById("bookmarkBtn");
+  if (!btn) return;
 
-  const button =
-    document.getElementById(
-      "bookmarkBtn"
-    );
+  const id = questions[currentQuestionIndex].id;
 
-  if (!button) return;
-
-  const questionId =
-    questions[
-      currentQuestionIndex
-    ].id;
-
-  if (
-    bookmarks.includes(
-      questionId
-    )
-  ) {
-
-    button.textContent =
-      "★ Bookmarked";
-
-    button.classList.add(
-      "bookmarked"
-    );
-
+  if (bookmarks.includes(id)) {
+    btn.textContent = "★ Bookmarked";
+    btn.classList.add("bookmarked");
   } else {
-
-    button.textContent =
-      "☆ Bookmark";
-
-    button.classList.remove(
-      "bookmarked"
-    );
-
+    btn.textContent = "☆ Bookmark";
+    btn.classList.remove("bookmarked");
   }
-
 }
 
 /* ==================================================
@@ -685,53 +387,16 @@ function updateBookmarkButton() {
 ================================================== */
 
 function saveQuizData() {
-
-  localStorage.setItem(
-    "userAnswers",
-    JSON.stringify(
-      userAnswers
-    )
-  );
-
-  localStorage.setItem(
-    "bookmarks",
-    JSON.stringify(
-      bookmarks
-    )
-  );
-
+  localStorage.setItem("userAnswers", JSON.stringify(userAnswers));
+  localStorage.setItem("bookmarks", JSON.stringify(bookmarks));
 }
 
 function loadSavedData() {
+  const ans = localStorage.getItem("userAnswers");
+  const bm = localStorage.getItem("bookmarks");
 
-  const savedAnswers =
-    localStorage.getItem(
-      "userAnswers"
-    );
-
-  const savedBookmarks =
-    localStorage.getItem(
-      "bookmarks"
-    );
-
-  if (savedAnswers) {
-
-    userAnswers =
-      JSON.parse(
-        savedAnswers
-      );
-
-  }
-
-  if (savedBookmarks) {
-
-    bookmarks =
-      JSON.parse(
-        savedBookmarks
-      );
-
-  }
-
+  if (ans) userAnswers = JSON.parse(ans);
+  if (bm) bookmarks = JSON.parse(bm);
 }
 
 /* ==================================================
@@ -739,173 +404,82 @@ function loadSavedData() {
 ================================================== */
 
 function showResults() {
-
   let correct = 0;
   let wrong = 0;
   let unanswered = 0;
 
-  questions.forEach((question, index) => {
+  questions.forEach((q, i) => {
+    const a = userAnswers[i];
 
-    const answer = userAnswers[index];
-
-    if (answer === undefined) {
-      unanswered++;
-    }
-    else if (answer === question.correctAnswer) {
-      correct++;
-    }
-    else {
-      wrong++;
-    }
-  }
-  );
+    if (a === undefined) unanswered++;
+    else if (a === q.correctAnswer) correct++;
+    else wrong++;
+  });
 
   const attempted = correct + wrong;
-
-  const accuracy = attempted > 0 ? Math.round((correct / attempted) * 100) : 0;
+  const accuracy = attempted ? Math.round((correct / attempted) * 100) : 0;
 
   document.getElementById("resultTotal").textContent = questions.length;
-
   document.getElementById("resultCorrect").textContent = correct;
-
   document.getElementById("resultWrong").textContent = wrong;
-
   document.getElementById("resultAccuracy").textContent = `${accuracy}%`;
 
   document.querySelector(".practice-layout").style.display = "none";
-
   document.getElementById("resultsSection").hidden = false;
 
-  localStorage.setItem("questionsAttempted", correct + wrong);
-
   localStorage.setItem("correctAnswers", correct);
-
   localStorage.setItem("wrongAnswers", wrong);
-
   localStorage.setItem("accuracy", accuracy);
-
   localStorage.setItem("unansweredQuestions", unanswered);
+
+  setTimeout(() => {
+
+  window.location.href =
+    "leaderboard.html";
+
+}, 1500);
 }
 
 /* ==================================================
-   SUBMIT
+   SUBMIT / RESET
 ================================================== */
 
 function submitPractice() {
+  const msg = isMockMode()
+    ? "Submit Mock Test?"
+    : "Submit Practice?";
 
-  const confirmed =
-    confirm(
-      quizMode === "mock"
-        ? "Submit Mock Test?"
-        : "Submit Practice?"
-    );
-
-  if (!confirmed) {
-    return;
-  }
+  if (!confirm(msg)) return;
 
   showResults();
-
 }
-
-/* ==================================================
-   RESET
-================================================== */
 
 function resetQuizData() {
-
-  localStorage.removeItem(
-    "userAnswers"
-  );
-
-  localStorage.removeItem(
-    "bookmarks"
-  );
-
+  localStorage.removeItem("userAnswers");
+  localStorage.removeItem("bookmarks");
   location.reload();
-
 }
 
 /* ==================================================
-   BUTTON EVENTS
+   EVENTS
 ================================================== */
 
-document
-  .getElementById(
-    "nextBtn"
-  )
-  .addEventListener(
-    "click",
-    () => {
+document.getElementById("nextBtn").addEventListener("click", () => {
+  if (currentQuestionIndex < questions.length - 1) {
+    currentQuestionIndex++;
+    displayQuestion();
+  } else {
+    submitPractice();
+  }
+});
 
-      if (
-        currentQuestionIndex <
-        questions.length - 1
-      ) {
+document.getElementById("prevBtn").addEventListener("click", () => {
+  if (currentQuestionIndex > 0) {
+    currentQuestionIndex--;
+    displayQuestion();
+  }
+});
 
-        currentQuestionIndex++;
-
-        displayQuestion();
-
-      } else {
-
-        submitPractice();
-
-      }
-
-    }
-  );
-
-document
-  .getElementById(
-    "prevBtn"
-  )
-  .addEventListener(
-    "click",
-    () => {
-
-      if (
-        currentQuestionIndex > 0
-      ) {
-
-        currentQuestionIndex--;
-
-        displayQuestion();
-
-      }
-
-    }
-  );
-
-document
-  .getElementById(
-    "bookmarkBtn"
-  )
-  ?.addEventListener(
-    "click",
-    toggleBookmark
-  );
-
-document
-  .getElementById(
-    "submitPracticeBtn"
-  )
-  .addEventListener(
-    "click",
-    submitPractice
-  );
-
-document
-  .getElementById(
-    "restartBtn"
-  )
-  .addEventListener(
-    "click",
-    resetQuizData
-  );
-
-/* ==================================================
-   START APP
-================================================== */
-
-loadQuestions();
+document.getElementById("bookmarkBtn")?.addEventListener("click", toggleBookmark);
+document.getElementById("submitPracticeBtn").addEventListener("click", submitPractice);
+document.getElementById("restartBtn").addEventListener("click", resetQuizData);

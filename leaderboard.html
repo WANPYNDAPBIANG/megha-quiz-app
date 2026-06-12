@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard | Megha Quiz App</title>
+
+  <link rel="stylesheet" href="css/leaderboard.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/navbar-footer.css">
+</head>
+
+<body>
+    <nav id="navbar"></nav>
+
+  <div class="leaderboard-container">
+
+    <div class="leaderboard-header">
+      <h1>🏆 Leaderboard</h1>
+      <p>Compare your performance with other candidates</p>
+    </div>
+
+    <div class="stats-card">
+
+      <div class="stat">
+        <span>Your Score</span>
+        <h2 id="yourScore">0/50</h2>
+      </div>
+
+      <div class="stat">
+        <span>Accuracy</span>
+        <h2 id="yourAccuracy">0%</h2>
+      </div>
+
+      <div class="stat">
+        <span>Rank</span>
+        <h2 id="yourRank">-</h2>
+      </div>
+
+    </div>
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Candidate</th>
+            <th>Score</th>
+            <th>Accuracy</th>
+          </tr>
+        </thead>
+
+        <tbody id="leaderboardBody">
+        </tbody>
+
+      </table>
+
+    </div>
+
+    <div class="actions">
+      <a href="practice.html" class="btn" onclick="resetQuizData();">
+        Take Another Test
+      </a>
+    </div>
+
+  </div>
+
+  <nav id="footer"></nav>
+  <script src="js/quiz.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/navbar.js"></script>
+  <script src="js/footer.js"></script>
+
+</body>
+
+</html>

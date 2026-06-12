@@ -9,9 +9,11 @@
   align-items: center;
   padding: 40px 20px;
 
-  background: radial-gradient(circle at top right,
-      #f0f5fa,
-      var(--bg-light));
+  background: radial-gradient(
+    circle at top right,
+    #f0f5fa,
+    var(--bg-light)
+  );
 }
 
 /* ==================================================

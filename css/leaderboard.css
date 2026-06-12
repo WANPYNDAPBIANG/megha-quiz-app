@@ -1,0 +1,326 @@
+/* ==========================================================================
+   LEADERBOARD PAGE
+   ========================================================================== */
+
+.leaderboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 24px 80px;
+}
+
+/* ==========================================================================
+   HEADER
+   ========================================================================== */
+
+.leaderboard-header {
+  background: linear-gradient(
+    135deg,
+    var(--primary-color),
+    #061c2c
+  );
+
+  color: white;
+
+  text-align: center;
+
+  padding: 60px 30px;
+
+  border-radius: 20px;
+
+  margin-bottom: 30px;
+
+  box-shadow:
+    0 15px 35px rgba(11, 60, 93, 0.2);
+}
+
+.leaderboard-header h1 {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  font-weight: 800;
+}
+
+.leaderboard-header p {
+  font-size: 1.1rem;
+  color: #d1e2ed;
+}
+
+/* ==========================================================================
+   STATS
+   ========================================================================== */
+
+.stats-card {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+
+  margin-bottom: 35px;
+}
+
+.stat {
+  background: white;
+
+  padding: 25px;
+
+  border-radius: 16px;
+
+  text-align: center;
+
+  box-shadow:
+    0 8px 20px rgba(11, 60, 93, 0.08);
+
+  transition: var(--transition-smooth);
+}
+
+.stat:hover {
+  transform: translateY(-5px);
+}
+
+.stat span {
+  display: block;
+
+  color: var(--text-muted);
+
+  margin-bottom: 10px;
+
+  font-size: 0.95rem;
+}
+
+.stat h2 {
+  color: var(--primary-color);
+
+  font-size: 2rem;
+
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   TABLE WRAPPER
+   ========================================================================== */
+
+.table-wrapper {
+  background: white;
+
+  border-radius: 20px;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 10px 25px rgba(11, 60, 93, 0.08);
+
+  margin-bottom: 30px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* ==========================================================================
+   TABLE HEADER
+   ========================================================================== */
+
+thead {
+  background: var(--primary-color);
+}
+
+thead th {
+  color: white;
+
+  padding: 18px;
+
+  text-align: left;
+
+  font-weight: 600;
+
+  font-size: 1rem;
+}
+
+/* ==========================================================================
+   TABLE BODY
+   ========================================================================== */
+
+tbody tr {
+  transition: var(--transition-smooth);
+}
+
+tbody tr:hover {
+  background: rgba(50, 140, 193, 0.08);
+}
+
+tbody td {
+  padding: 18px;
+
+  border-bottom: 1px solid #edf2f7;
+
+  color: var(--text-dark);
+}
+
+/* ==========================================================================
+   TOP RANKS
+   ========================================================================== */
+
+.rank-1 {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 215, 0, 0.12),
+      transparent
+    );
+}
+
+.rank-2 {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(192, 192, 192, 0.15),
+      transparent
+    );
+}
+
+.rank-3 {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(205, 127, 50, 0.12),
+      transparent
+    );
+}
+
+/* ==========================================================================
+   CURRENT USER
+   ========================================================================== */
+
+.current-user {
+  background:
+    rgba(50, 140, 193, 0.12);
+
+  font-weight: 700;
+
+  border-left:
+    5px solid var(--secondary-color);
+}
+
+/* ==========================================================================
+   SCORE BADGE
+   ========================================================================== */
+
+.score-badge {
+  background: rgba(29, 122, 66, 0.1);
+
+  color: var(--accent-color);
+
+  padding: 6px 12px;
+
+  border-radius: 50px;
+
+  font-weight: 600;
+
+  display: inline-block;
+}
+
+/* ==========================================================================
+   ACCURACY BADGE
+   ========================================================================== */
+
+.accuracy-badge {
+  background: rgba(50, 140, 193, 0.12);
+
+  color: var(--secondary-color);
+
+  padding: 6px 12px;
+
+  border-radius: 50px;
+
+  font-weight: 600;
+}
+
+/* ==========================================================================
+   ACTION BUTTON
+   ========================================================================== */
+
+.actions {
+  text-align: center;
+}
+
+.actions .btn {
+  background: var(--secondary-color);
+
+  color: white;
+
+  text-decoration: none;
+
+  padding: 14px 30px;
+
+  border-radius: 12px;
+
+  font-weight: 600;
+
+  transition: var(--transition-smooth);
+
+  display: inline-block;
+}
+
+.actions .btn:hover {
+  background: #2574a3;
+
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   EMPTY STATE
+   ========================================================================== */
+
+.empty-message {
+  text-align: center;
+
+  padding: 50px 20px;
+
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   MOBILE
+   ========================================================================== */
+
+@media (max-width: 768px) {
+
+  .leaderboard-header {
+    padding: 40px 20px;
+  }
+
+  .leaderboard-header h1 {
+    font-size: 2rem;
+  }
+
+  .stats-card {
+    grid-template-columns: 1fr;
+  }
+
+  .table-wrapper {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 600px;
+  }
+
+  thead th,
+  tbody td {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+
+  .leaderboard-container {
+    padding: 20px 12px 50px;
+  }
+
+  .leaderboard-header h1 {
+    font-size: 1.7rem;
+  }
+
+  .stat h2 {
+    font-size: 1.5rem;
+  }
+}

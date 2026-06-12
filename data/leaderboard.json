@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Rahul",
+    "score": 48,
+    "accuracy": 96,
+    "time": "18m 22s"
+  },
+  {
+    "name": "Priya",
+    "score": 46,
+    "accuracy": 92,
+    "time": "20m 10s"
+  },
+  {
+    "name": "Amit",
+    "score": 44,
+    "accuracy": 88,
+    "time": "25m 15s"
+  }
+]

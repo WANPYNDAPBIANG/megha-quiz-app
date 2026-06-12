@@ -1,14 +1,13 @@
+/* ==========================================================================
+   DESIGN TOKENS & RESET
+   ========================================================================== */
 :root {
-  --primary-color: #0b3c5d;
-  --secondary-color: #328cc1;
-  --accent-color: #1d7a42;
-  /* Success Green */
-  --text-dark: #1d2731;
-  /* Off-Black Text */
-  --text-muted: #576574;
-  /* Slate Grey Description Text */
-  --bg-light: #f9fbfd;
-  /* Soft Canvas Background */
+  --primary-color: #0b3c5d;    /* Trustworthy Deep Blue */
+  --secondary-color: #328cc1;  /* Active Cyan Blue */
+  --accent-color: #1d7a42;     /* Success Green */
+  --text-dark: #1d2731;        /* Off-Black Text */
+  --text-muted: #576574;       /* Slate Grey Description Text */
+  --bg-light: #f9fbfd;         /* Soft Canvas Background */
   --bg-white: #ffffff;
   --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -156,7 +155,7 @@ body {
   .section {
     padding: 50px 0;
   }
-
+  
   .hero {
     padding: 100px 0 70px 0;
   }
@@ -168,7 +167,7 @@ body {
   .hero p {
     font-size: 1.1rem;
   }
-
+  
   .hero-buttons {
     flex-direction: column;
     width: 100%;
@@ -185,8 +184,7 @@ body {
    AUTHENTICATION PAGES LAYOUT
    ========================================================================== */
 .auth-page {
-  min-height: calc(100vh - 72px);
-  /* Fills screen remaining below navbar */
+  min-height: calc(100vh - 72px); /* Fills screen remaining below navbar */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -295,7 +293,7 @@ body {
   .auth-page {
     padding: 20px 16px;
   }
-
+  
   .auth-card {
     padding: 32px 20px;
   }
@@ -317,7 +315,7 @@ body {
 }
 
 /* Stack multiple footnote links with a clean separation layout */
-.auth-card .auth-link+.auth-link {
+.auth-card .auth-link + .auth-link {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px dashed #eef2f6;
